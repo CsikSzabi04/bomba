@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aknakereső</title>
+</head>
+<style>
+    body { background-color: black; color: white }
+    #jatek {
+        width: 500px; 
+        height: 500px;
+        margin: 30px auto;
+        background-color: white;
+        font-size: 0px;
+        padding: 10px;
+        border-radius: 15px;
+        box-shadow: 0px 0px 20px white;
+    }
+    #jatek img { margin: 1px; transition: 0.2s; }
+    #jatek img:hover {
+        background-color: lightblue;
+        border-radius: 10px;
+    }
+    #info {
+        width: 480px;
+        margin: 10px auto;
+        display: flex;
+        justify-content: space-between;
+    }
+    #info img { vertical-align: middle; }
+    #info input { 
+        width: 90px; 
+        height: 35px; 
+        background-color: black;
+        border: 1px solid white;
+        border-radius: 7px;
+        color: white;
+        cursor: pointer;
+        transition: 0.4s;
+    }
+    #info input:hover {
+        background-color: rgb(255, 255, 255);
+        color: black;
+        box-shadow: 0px 0px 10px white;
+    }
+    #text {
+        font-size: 16px;
+        font-weight: bold;
+    }
+    /*
+    @keyframes f{
+        0%{font-size: 32px;}
+        75% {color: 16px};
+        100%{color:46px}
+    }
+    */
+</style>
+
+<body onload="start()">
+    
+    <div id="jatek"></div>
+    <div id="info">
+        <div><input type="button" value="Retry" onclick="retry();"></div>
+        <div>
+            <span id="text">Search the bombs!</span>
+            <img src="face.png" alt="">
+        </div>
+    </div>
+
+</body>
+</html>
+
+<script>
+
+    let t = [];
+    let j = [];
+    let jatek = true;
+    let flag = 0;
+
+    function start(){
+        let html = "";
+        for(let s = 0; s < 10; s++){
+            t[s] = []; j[s] = [];
+            for(let o = 0; o < 10; o++){
+                t[s][o] = "numX"; j[s][o] = "numX";
+                html += "<img id='"+s+"x"+o+"' src='numx.png' onclick='katt("+s+","+o+")' oncontextmenu='jobbkatt("+s+","+o+");'>";
+            } 
+        }
+        document.getElementById('jatek').innerHTML = html;
+        think();
+
+    }
+
+    function think(){
+        for(let i = 0; i<10; i++){
+            let s, o;
+            do{
+                s = Math.floor(Math.random()*10);
+                o = Math.floor(Math.random()*10);
+            } while(t[s][o] != "numX");
+            j[s][o] = "bomb"; //setPic(s, o, "bomb")
+        }
+        for(let s = 0; s<10; s++){
+            for(let o = 0; o<10; o++){
+                if(j[s][o] != "bomb") {
+                    j[s][o] = "num" + bomba(s, o) 
+                    //setPic(s, o, "num" + bomb(s, o))
+                }
+            }
+        }
+    }
+
+    function setPic(s, o, kep){
+        t[s][o] = kep; document.getElementById(s+'x'+o).src =  kep + ".png";
+    }
+
+    function bomba(s, o){
+        let db = 0;
+        for(let ss=s-1; ss<=s+1; ss++){
+            for(let oo=o-1; oo<=o+1; oo++){
+                if(ss>=0 && ss<=9 && oo>=0 && oo<=9 && j[ss][oo] == "bomb") db++; 
+            }
+        }
+        return db;
+    }
+
+    function katt(s, o){
+        if(!jatek) return;
+        if(j[s][o] == "bomb"){
+            for(let i = 0; i<10; i++)for(let o = 0; o < 10; o++){
+                if(j[s][o] == "bomb") setPic(s, o, "bomb");
+            }
+            setPic(s, o, j[s][o]);
+            document.getElementById("text").innerHTML = "Looser!";
+            document.getElementById("text").style = "animation: f 1s infinite";
+            jatek = false;
+        }else if(j[s][o] == "num0"){
+            empty(s, o);
+        } else setPic(s, o, j[s][o]);  
+        win();
+    }
+
+    function empty(s, o){
+        setPic(s, o, "null"); j[s][o] = "null";
+        //for(let ss=s-1; ss<=s+1; ss++) for(let oo=o-1; oo<=o+1; oo++){
+        //   if(ss>=0 && ss<=9 && oo>=0 && oo<=9){
+        //       if(j[ss][oo] = "num0") empty(ss, oo); else setPic(ss, oo, j[ss][oo]);
+        //   }
+        //}
+        //if(s>0) if(j[s-1][o] == "num0") setPic(s-1, o, "null"); else setPic(s-1, o, j[s-1][o]);
+        //if(s<9) if(j[s+1][o] == "num0") setPic(s+1, o, "null"); else setPic(s+1, o, j[s+1][o]);
+        //if(o>0) if(j[s][o-1] == "num0") setPic(s, o-1, "null"); else setPic(s, o-1, j[s][o-1]);
+        //if(s<9) if(j[s][o+1] == "num0") setPic(s, o+1, "null"); else setPic(s, o+1, j[s][o+1]);
+        for(let ss=s-1; ss<=s+1; ss++) for(let oo=o-1; oo<=o+1; oo++){
+            if(ss>=0 && ss<=9 && oo>=0 && oo<=9) setPic(ss, oo, j[ss][oo]);
+        }
+        if(s>0 && j[s-1][o] == "num0") empty(s-1, o);
+        if(s<9 && j[s+1][o] == "num0") empty(s+1, o);
+        if(s>0 && j[s][o-1] == "num0") empty(s, o-1);
+        if(s<9 && j[s][o+1] == "num0") empty(s, o+1);
+    }
+
+    function retry(){
+        for(let s = 0; s < 10; s++) for(let o=0; o<10; o++) {
+            setPic(s, o, "numX"); j[s][o] = "numX";
+        }
+        think();
+        document.getElementById("text").innerHTML = "Search the bombs!";
+        jatek = true;
+    }
+
+    function jobbkatt(s, o){
+        if(t[s][o] == "numX") {setPic(s, o, "danger"); falg++;}
+        event.preventDefault();
+    }
+
+    function win(){
+        dbX = 0;
+        for(let s=0; s<10; s++) for(let o=0; o<10; o++) if(t[s][o] == "numX") dbX++;
+        if(dbX == 0){
+            if(flag == 10){
+                document.getElementById("text").innerHTML = "Grat!";
+            }else{
+                document.getElementById("text").innerHTML = "Looser!";
+            }
+        }
+    }
+
+</script>
